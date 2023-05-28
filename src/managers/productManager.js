@@ -1,11 +1,20 @@
 import fs from 'fs';
 class Product {
-
     constructor ({title, price, thumbnail, code, stock, id}) {
-        if (!title || !price || !thumbnail || ! code || stock === null || id === undefined) throw new Error('All parameters should be specified');
+        if (!title 
+            || !price 
+            || !thumbnail 
+            || ! code 
+            || stock === null 
+            || id === undefined) 
+                throw new Error('All parameters should be specified');
 
-        if (typeof title !== 'string' || typeof price !== 'number' || typeof thumbnail !== 'string' || typeof code !== 'string' || typeof stock !== 'number') {
-            throw new Error('Invalid parameter datatype');
+        if (typeof title !== 'string' 
+            || typeof price !== 'number' 
+            || typeof thumbnail !== 'string' 
+            || typeof code !== 'string' 
+            || typeof stock !== 'number') {
+                throw new Error('Invalid parameter datatype');
         }
 
         if (price < 0) throw new Error('Price cannot be negative');
@@ -19,17 +28,14 @@ class Product {
         this.code = code;
         this.stock = stock;
     }
-
 }
 
 class ProductManager {
-
     constructor(filePath) {
         this.filePath = filePath;
         this.products = [];
         this.lastProductId = 0;
     }
-
     initialize = async () => {
         if(fs.existsSync(this.filePath)) {
             const data = await fs.promises.readFile(this.filePath, 'utf8');
@@ -40,16 +46,13 @@ class ProductManager {
         const lastProduct = this.products[this.products.length - 1];
         this.lastProductId = lastProduct ? lastProduct.id + 1 : 1;        
     }
-
     save = async () => {
         await fs.promises.writeFile(this.filePath, JSON.stringify(this.products, null, '\t'));
     }
-    
     getProducts = async () => {
         await this.initialize()
         return this.products;
     }
-
     addProduct = async ({title, price, thumbnail, code, stock}) => {
         await this.initialize();
         if (this.products.some((product) => product.code === code)) {
@@ -59,14 +62,12 @@ class ProductManager {
         this.products.push(newProduct);
         await this.save()
     }
-
     getProductById = async (id) => {
         await this.initialize();
         const returnProduct = this.products.find((product) => product.id === id);
         if(!returnProduct) throw new Error("Product not found");
         return returnProduct;
     }
-
     deleteProduct = async (id) => {
         await this.initialize();
         const index = this.products.findIndex((product) => product.id === id);
@@ -76,7 +77,6 @@ class ProductManager {
         this.products.splice(index, 1);
         await this.save();
     }
-
     updateProduct = async (id, updatedFields) => {
         await this.initialize();
         const index = this.products.findIndex((product) => product.id === id);
@@ -101,7 +101,6 @@ class ProductManager {
         await this.save();
         return this.products[index];
     }
-
 };
 
 export { ProductManager };

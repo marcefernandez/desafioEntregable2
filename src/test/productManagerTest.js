@@ -97,7 +97,7 @@ const test = async () => {
 
     //Test Case 13: Agrego un nuevo producto
     try {
-        await productManager.addProduct({title: 'bulbo raiz', price: 1000, thumbnail: 'Hola', code: 'nico4', stock: 0});
+        await productManager.addProduct({title: 'Honda CBR 600', price: 15000, thumbnail: 'Full', code: 'Seba', stock: 0});
     } catch (error) {
         console.log('Test Case 13: ', error.message); 
     }
@@ -111,14 +111,14 @@ const test = async () => {
 
    //Test Case 15: Agrego un nuevo producto para controlar ID
    try {
-        await productManager.addProduct({title: 'bulbo raiz santi', price: 1000, thumbnail: 'Hola', code: 'nico88', stock: 0});
+        await productManager.addProduct({title: 'Suzuki 1000', price: 1000, thumbnail: 'Hola', code: 'Seba34', stock: 0});
     } catch (error) {
         console.log('Test Case 15: ', error.message); 
     }
 
     //Test Case 16: Actualizo un producto inexistente
     try {
-        await productManager.updateProduct(1000, {stock: 5, title: 'a ver a ver', id: 102, code: "bianca"});
+        await productManager.updateProduct(1000, {stock: 5, title: 'a ver a ver', id: 102, code: "ana"});
     } catch (error) {
         console.log('Test Case 16 ', error.message); 
     }
@@ -160,8 +160,5 @@ const test = async () => {
     } catch (error) {
         console.log('Test Case 21 ', error.message); 
     }
-
-
 }
-
 test();
