@@ -95,7 +95,7 @@ class ProductManager {
 
         if (this.products.some((product) => product.code === updatedProduct.code && product.id !== updatedProduct.id )) {
             throw new Error('The specified code is in use by another existant product');
-          }
+        }
 
         this.products[index] = updatedProduct;
         await this.save();
