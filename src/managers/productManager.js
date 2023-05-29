@@ -30,7 +30,7 @@ class Product {
     }
 }
 
-class ProductManager {
+export class ProductManager {
     constructor(filePath) {
         this.filePath = filePath;
         this.products = [];
@@ -57,7 +57,7 @@ class ProductManager {
         await this.initialize();
         if (this.products.some((product) => product.code === code)) {
             throw new Error('The specified code is in use by another existant product');
-          }
+        }
         const newProduct = new Product({title, price, thumbnail, code, stock, id: this.lastProductId++});
         this.products.push(newProduct);
         await this.save()
@@ -102,5 +102,4 @@ class ProductManager {
         return this.products[index];
     }
 };
-
-export { ProductManager };
+export { ProductManager }
