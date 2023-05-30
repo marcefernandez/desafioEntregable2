@@ -1,14 +1,15 @@
 {
   "name": "motosafe",
   "version": "1.0.0",
-  "description": "Backend of e-commerce motosafe",
+  "type": "module",
+  "description": "E-commerce MotoSafe",
   "main": "/scr/managers/productManager.js",
   "scripts": {
     "start": "nodemon ./src/app.js"
   },
+  "keywords": [],
   "author": "Fernandez Marcelo",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "express": "^4.18.2",
     "nodemon": "^2.0.22"

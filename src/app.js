@@ -1,32 +1,79 @@
-import express from 'express';
-import { ProductManager } from "./managers/productManager.js";
+import express from "express";
+import ProductManager from "./managers/productManager.js";
+import CartManager from "./managers/CartManager.js";
+
+const productManager = new ProductManager("./productos.json");
+const cartManager = new CartManager("./carritos.json");
 
 const app = express();
-const productManager = new ProductManager('./src/data/products.json');
 
-app.use(express.json())
-app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 
-app.get('/products', async (req, res) => {
-    try {
-        const {limit} = req.query;
-        const products = await productManager.getProducts();
-        const limitValue = parseInt(limit) >= 0 ? parseInt(limit) : products.length;
-        res.send({products: products.slice(0, limitValue)});
-    } catch (error) {
-        res.status(500).send({status: 0, msg: error.message});
-    }
+app.get("/api/products", (req, res) => {
+  const limit = req.query.limit;
+  const products = productManager.getProducts(limit);
+  res.json(products);
 });
 
-app.get('/products/:productId', async (req, res) => {
-    try {
-        const productId = parseInt(req.params.productId);
-        const product = await productManager.getProductById(productId)
-        res.send({product});
-    } catch (error) {
-        res.status(404).send({status: 0, msg: error.message});
-    }
+app.get("/api/products/:id", (req, res) => {
+  const productId = parseInt(req.params.id);
+  const product = productManager.getProductById(productId);
+  if (product) {
+    res.json(product);
+  } else {
+    res.status(404).json({ error: "Producto no encontrado" });
+  }
 });
 
-const port = 8080;
-app.listen(port, () => console.log(`MotoSafe Backend server is up on port ${port}`));
+app.post("/api/products", (req, res) => {
+  const { title, description, price, stock, thumbnails } = req.body;
+  productManager.addProduct(title, description, price, stock, thumbnails);
+  res.sendStatus(201);
+});
+
+app.put("/api/products/:id", (req, res) => {
+  const productId = parseInt(req.params.id);
+  const updatedProduct = req.body;
+  productManager.updateProduct(productId, updatedProduct);
+  res.sendStatus(200);
+});
+
+app.delete("/api/products/:id", (req, res) => {
+  const productId = parseInt(req.params.id);
+  productManager.deleteProduct(productId);
+  res.sendStatus(200);
+});
+
+app.post("/api/carts", (req, res) => {
+  const cart = cartManager.createCart([]);
+  res.status(201).json({ id: cart.id, message: "Carrito creado exitosamente" });
+});
+
+app.get("/api/carts", (req, res) => {
+  const carts = cartManager.getAllCarts();
+  res.json(carts);
+});
+
+app.get("/api/carts/:id", (req, res) => {
+  const cartId = req.params.id;
+  const cart = cartManager.getCartById(cartId);
+  if (cart) {
+    res.json(cart);
+  } else {
+    res.status(404).json({ error: "Carrito no encontrado" });
+  }
+});
+
+app.post("/api/carts/:id/products/:productId", (req, res) => {
+  const cartId = req.params.id;
+  const productId = parseInt(req.params.productId);
+  cartManager.addToCart(cartId, productId);
+  res.sendStatus(200);
+});
+
+app.delete("/api/carts/:id/products/:productId", (req, res) => {
+  const cartId = req.params.id;
+  const productId = parseInt(req.params.productId);
+  cartManager.removeFromCart(cartId, productId);
+  res.sendStatus(200);
+});

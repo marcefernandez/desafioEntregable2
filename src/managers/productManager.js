@@ -1,105 +1,109 @@
-import fs from 'fs';
-class Product {
-    constructor ({title, price, thumbnail, code, stock, id}) {
-        if (!title 
-            || !price 
-            || !thumbnail 
-            || ! code 
-            || stock === null 
-            || id === undefined) 
-                throw new Error('All parameters should be specified');
+import fs from "fs";
 
-        if (typeof title !== 'string' 
-            || typeof price !== 'number' 
-            || typeof thumbnail !== 'string' 
-            || typeof code !== 'string' 
-            || typeof stock !== 'number') {
-                throw new Error('Invalid parameter datatype');
-        }
+class ProductManager {
+  constructor(path) {
+    this.products = [];
+    this.id = 1;
+    this.path = path;
+    this.loadProducts();
+  }
 
-        if (price < 0) throw new Error('Price cannot be negative');
-
-        if (stock < 0) throw new Error('Stock cannot be negative');
-
-        this.id = id;
-        this.title = title;
-        this.price = price;
-        this.thumbnail = thumbnail;
-        this.code = code;
-        this.stock = stock;
+  addProduct(title, description, price, stock, thumbnails = []) {
+    if (title && description && price && stock) {
+      const id = this.id++;
+      const newProduct = {
+        id,
+        title,
+        description,
+        price,
+        stock,
+        thumbnails,
+        status: true,
+        category: "",
+        code: this.generateCode(),
+      };
+      this.products.push(newProduct);
+      // console.log('Producto agregado correctamente');
+      this.archiveProducts();
+    } else {
+      return console.log("ERROR: Debe completar todos los campos");
     }
+  }
+
+  deleteProduct(id) {
+    const index = this.products.findIndex((product) => product.id === id);
+    if (index === -1) {
+      // console.error('No se encontró ningún producto con ese ID');
+      return;
+    }
+    const deletedProduct = this.products.splice(index, 1);
+    // console.log('Producto eliminado correctamente:', deletedProduct);
+    this.archiveProducts();
+  }
+
+  updateProduct(id, newObject) {
+    const productIndex = this.products.findIndex(
+      (product) => product.id === id
+    );
+    if (productIndex === -1) {
+      // console.error('No se encontró el producto');
+      return;
+    }
+    const updatedProduct = {
+      ...this.products[productIndex],
+      ...newObject,
+    };
+    this.products[productIndex] = updatedProduct;
+    // console.log('Producto actualizado correctamente');
+    this.archiveProducts();
+  }
+
+  getProducts(limit) {
+    if (limit) {
+      return this.products.slice(0, limit);
+    }
+    return this.products;
+  }
+
+  getProductById(id) {
+    const product = this.products.find((product) => product.id === id);
+    if (!product) {
+      // console.error('No se encontró el producto');
+      return;
+    }
+    // console.log('Producto con el ID solicitado:', product);
+    return product;
+  }
+
+  loadProducts() {
+    try {
+      const data = fs.readFileSync(this.path, "utf-8");
+      this.products = JSON.parse(data);
+      // console.log('Productos cargados correctamente');
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        // console.log('El archivo no existe. Se creará uno nuevo.');
+        this.archiveProducts();
+      } else {
+        console.error(error);
+      }
+    }
+  }
+
+  archiveProducts() {
+    try {
+      const jsonData = JSON.stringify(this.products);
+      fs.writeFileSync(this.path, jsonData);
+      // console.log('Productos archivados correctamente');
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  generateCode() {
+    const code = "CODE-" + this.id.toString().padStart(4, "0");
+    return code;
+  }
 }
 
-export class ProductManager {
-    constructor(filePath) {
-        this.filePath = filePath;
-        this.products = [];
-        this.lastProductId = 0;
-    }
-    initialize = async () => {
-        if(fs.existsSync(this.filePath)) {
-            const data = await fs.promises.readFile(this.filePath, 'utf8');
-            this.products = JSON.parse(data);
-        } else {
-            this.products = [];
-        }
-        const lastProduct = this.products[this.products.length - 1];
-        this.lastProductId = lastProduct ? lastProduct.id + 1 : 1;        
-    }
-    save = async () => {
-        await fs.promises.writeFile(this.filePath, JSON.stringify(this.products, null, '\t'));
-    }
-    getProducts = async () => {
-        await this.initialize()
-        return this.products;
-    }
-    addProduct = async ({title, price, thumbnail, code, stock}) => {
-        await this.initialize();
-        if (this.products.some((product) => product.code === code)) {
-            throw new Error('The specified code is in use by another existant product');
-        }
-        const newProduct = new Product({title, price, thumbnail, code, stock, id: this.lastProductId++});
-        this.products.push(newProduct);
-        await this.save()
-    }
-    getProductById = async (id) => {
-        await this.initialize();
-        const returnProduct = this.products.find((product) => product.id === id);
-        if(!returnProduct) throw new Error("Product not found");
-        return returnProduct;
-    }
-    deleteProduct = async (id) => {
-        await this.initialize();
-        const index = this.products.findIndex((product) => product.id === id);
-        if (index === -1) {
-            throw new Error("Product not found");
-        }
-        this.products.splice(index, 1);
-        await this.save();
-    }
-    updateProduct = async (id, updatedFields) => {
-        await this.initialize();
-        const index = this.products.findIndex((product) => product.id === id);
-        if (index === -1) throw new Error("Product not found");
-
-        const updatedProduct = { ...this.products[index], ...updatedFields };
-        if (updatedProduct.price < 0) throw new Error('Price cannot be negative');
-        if (updatedProduct.stock < 0) throw new Error('Stock cannot be negative');
-        if (updatedProduct.id !== id) throw new Error('Id cannot be updated');        
-
-        const allowedFields = ['title', 'price', 'thumbnail', 'code', 'stock'];
-        const invalidFields = Object.keys(updatedFields).filter(field => !allowedFields.includes(field));
-        if (invalidFields.length > 0) {
-            throw new Error(`Invalid updatable fields: ${invalidFields.join(', ')}`);
-        }
-
-        if (this.products.some((product) => product.code === updatedProduct.code && product.id !== updatedProduct.id )) {
-            throw new Error('The specified code is in use by another existant product');
-        }
-
-        this.products[index] = updatedProduct;
-        await this.save();
-        return this.products[index];
-    }
-};
-export { ProductManager }
+export default ProductManager;

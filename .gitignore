@@ -3,3 +3,6 @@ node_modules
 
 #ignorar el archivo package-lock.json
 package-lock.json
+
+#ignorar data.txt
+data.txt
